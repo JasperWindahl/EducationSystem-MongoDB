@@ -59,6 +59,21 @@ namespace WebApi.DatabaseHelper
         }
 
         /// <summary>
+        /// Replaces or insert a specific document in the specified collection
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="collection"></param>
+        /// <param name="id"></param>
+        /// <param name="document"></param>
+        public void UpsertDocument<T>(string collection, ObjectId id, T document)
+        {
+            var dbCollection = _db.GetCollection<T>(collection);
+            var filter = Builders<T>.Filter.Eq("Id", id);
+            var options = new ReplaceOptions { IsUpsert = true };
+            _ = dbCollection.ReplaceOne(filter, document, options);
+        }
+
+        /// <summary>
         /// Replaces a specific document in the specified collection
         /// </summary>
         /// <typeparam name="T"></typeparam>
