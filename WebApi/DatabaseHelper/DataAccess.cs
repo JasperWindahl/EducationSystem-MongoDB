@@ -9,7 +9,7 @@ namespace WebApi.DatabaseHelper
     {
         private IMongoDatabase _db;
         private string _connectionString = "mongodb://localhost:27017";
-        private string _collection = "EducationSystem";
+        private string _database = "EducationSystem";
 
         /// <summary>
         /// Instanciates the DataAccess and sets up the client and collection
@@ -17,7 +17,7 @@ namespace WebApi.DatabaseHelper
         public DataAccess()
         {
             var client = new MongoClient(_connectionString);
-            _db = client.GetDatabase(_collection);
+            _db = client.GetDatabase(_database);
         }
 
         /// <summary>
