@@ -1,8 +1,11 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 using WebApi.DatabaseHelper;
 
 namespace WebApi
@@ -20,6 +23,21 @@ namespace WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddTransient<DataAccess>();
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme).AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
+                {
+                    ValidateIssuer = true, //validate the server that created that token
+                    ValidateAudience = true, //ensure that the recipient of the token is authorized to receive it
+                    ValidateLifetime = true, //check that the token is not expired and that the signing key of the issuer is valid
+                    ValidateIssuerSigningKey = true, //verify that the key used to sign the incoming token is part of a list of trusted keys
+                    ValidIssuer = Configuration["Jwt:Issuer"],
+                    ValidAudience = Configuration["Jwt:Issuer"],
+                    IssuerSigningKey =
+                        new SymmetricSecurityKey(Encoding.UTF8.GetBytes(Configuration["Jwt:Key"])),
+                    RequireExpirationTime = true
+                };
+            });
             services.AddControllers();
         }
 
@@ -31,10 +49,9 @@ namespace WebApi
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseAuthentication();
             app.UseHttpsRedirection();
-
             app.UseRouting();
-
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>
