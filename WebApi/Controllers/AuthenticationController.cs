@@ -10,6 +10,8 @@ using System.Security.Claims;
 using System.Text;
 using WebApi.Authentication;
 using WebApi.DatabaseHelper;
+using WebApi.Models;
+using static WebApi.Authentication.Hashing;
 
 namespace WebApi.Controllers
 {
@@ -79,11 +81,14 @@ namespace WebApi.Controllers
 
             foreach (var user in users)
             {
-                if (tokenRequest.Username == user.Username && tokenRequest.Password == user.Password)
+                var hashedUsername = GenerateHash(tokenRequest.Username, user.salt);
+                var hashedPassword = GenerateHash(tokenRequest.Password, user.salt);
+                if (hashedUsername == user.Username && hashedPassword == user.Password)
                 {
                     tokenDetails.Email = user.Email;
                     tokenDetails.Name = user.FullName;
                     tokenDetails.Roles = user.Roles;
+                    break;
                 }
             }
             return tokenDetails;
