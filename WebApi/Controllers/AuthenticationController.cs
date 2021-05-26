@@ -3,14 +3,18 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using WebApi.Authentication;
+using WebApi.DatabaseHelper;
 
 namespace WebApi.Controllers
 {
     [Route("api/auth")]
+    [Authorize]
     [ApiController]
     public class AuthenticationController : ControllerBase
     {
@@ -19,7 +23,7 @@ namespace WebApi.Controllers
         {
             _configuration = configuration;
         }
-        
+
         /// <summary>
         /// Get token, authenticating user credentials
         /// </summary>
@@ -67,18 +71,29 @@ namespace WebApi.Controllers
             };
             return details;
         }
-        
+
         public TokenDetails AuthenticateUser(TokenRequest tokenRequest)
         {
             var tokenDetails = new TokenDetails();
-            if (tokenRequest.Username == "test" && tokenRequest.Password == "user")
+            var users = GetUserList();
+
+            foreach (var user in users)
             {
-                tokenDetails.Email = "jasp0359@stud.kea.dk";
-                tokenDetails.Name = "Jasper Windahl";
-                tokenDetails.Roles =
-                    "auth.mongo"; //roles are separated by comma(,) which is also mentioned in constant class named AuthorizationConstants
+                if (tokenRequest.Username == user.Username && tokenRequest.Password == user.Password)
+                {
+                    tokenDetails.Email = user.Email;
+                    tokenDetails.Name = user.FullName;
+                    tokenDetails.Roles = user.Roles;
+                }
             }
             return tokenDetails;
+        }
+
+        private List<User> GetUserList()
+        {
+            var db = new DataAccess();
+            var collection = "Users";
+            return db.GetDocuments<User>(collection).ToList();
         }
     }
 }
