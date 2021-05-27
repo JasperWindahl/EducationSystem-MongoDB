@@ -46,6 +46,12 @@ namespace WebApi.DatabaseHelper
             return dbCollection.Find(filter).First();
         }
 
+        public IEnumerable<T> GetDocumentsByFilter<T>(string collection, FilterDefinition<T> filter)
+        {
+            var dbCollection = _db.GetCollection<T>(collection);
+            return dbCollection.Find(filter).ToEnumerable();
+        }
+
         /// <summary>
         /// Insert document in specified collection
         /// </summary>
