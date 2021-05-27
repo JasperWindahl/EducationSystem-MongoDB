@@ -51,6 +51,34 @@ namespace WebApi.Controllers
             return response;
         }
 
+        [Route("register")]
+        [AllowAnonymous]
+        [HttpPost]
+        public IActionResult CreateUser([FromBody] User registerUser)
+        {
+            IActionResult response = BadRequest();
+            if (registerUser.Username != null && registerUser.Password != null)
+            {
+                if (CheckUserExists(registerUser.Username)) { return response; }
+
+                var salt = GenerateSalt();
+                var user = new User
+                {
+                    Username = registerUser.Username,
+                    Password = GenerateHash(registerUser.Password, salt),
+                    Salt = salt,
+                    Email = registerUser.Email,
+                    FullName = registerUser.FullName,
+                    Roles = "auth.mongo"
+                };
+                var db = new DataAccess();
+                var collection = "Users";
+                db.InsertDocument<User>(collection, user);
+                response = Ok();
+            }
+            return response;
+        }
+
         /// <summary>
         /// Build token after successful credentials validation
         /// </summary>
@@ -81,9 +109,8 @@ namespace WebApi.Controllers
 
             foreach (var user in users)
             {
-                var hashedUsername = GenerateHash(tokenRequest.Username, user.salt);
-                var hashedPassword = GenerateHash(tokenRequest.Password, user.salt);
-                if (hashedUsername == user.Username && hashedPassword == user.Password)
+                var hashedPassword = GenerateHash(tokenRequest.Password, user.Salt);
+                if (user.Username == tokenRequest.Username && hashedPassword == user.Password)
                 {
                     tokenDetails.Email = user.Email;
                     tokenDetails.Name = user.FullName;
@@ -99,6 +126,15 @@ namespace WebApi.Controllers
             var db = new DataAccess();
             var collection = "Users";
             return db.GetDocuments<User>(collection).ToList();
+        }
+
+        private bool CheckUserExists(string userName)
+        {
+            var db = new DataAccess();
+            var collection = "Users";
+            var filter = MongoDB.Driver.Builders<User>.Filter.Eq("Username", userName);
+            var result = db.GetDocumentsByFilter<User>(collection, filter).Count();
+            return result > 0;
         }
     }
 }
