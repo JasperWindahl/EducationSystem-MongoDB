@@ -8,7 +8,7 @@ namespace WebApi.DatabaseHelper
     public class DataAccess
     {
         private IMongoDatabase _db;
-        private string _connectionString = "mongodb://localhost:27017";
+        private string _connectionString = "mongodb+srv://sd21w1-db4devs:PoXiALeRiaCY@cluster0.ymmgr.mongodb.net/test?authSource=admin&replicaSet=atlas-9fbz1s-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true";
         private string _database = "EducationSystem";
 
         /// <summary>
