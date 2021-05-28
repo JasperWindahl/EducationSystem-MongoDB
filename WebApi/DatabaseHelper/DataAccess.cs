@@ -1,4 +1,5 @@
-﻿using MongoDB.Bson;
+﻿using Microsoft.Extensions.Configuration;
+using MongoDB.Bson;
 using MongoDB.Driver;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,16 +9,19 @@ namespace WebApi.DatabaseHelper
     public class DataAccess
     {
         private IMongoDatabase _db;
-        private string _connectionString = "mongodb+srv://sd21w1-db4devs:PoXiALeRiaCY@cluster0.ymmgr.mongodb.net/test?authSource=admin&replicaSet=atlas-9fbz1s-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true";
+        //private string _connectionString = "mongodb+srv://sd21w1-db4devs:PoXiALeRiaCY@cluster0.ymmgr.mongodb.net/test?authSource=admin&replicaSet=atlas-9fbz1s-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true";
         private string _database = "EducationSystem";
+        private IConfiguration _configuration;
 
         /// <summary>
         /// Instanciates the DataAccess and sets up the client and collection
         /// </summary>
-        public DataAccess()
+        public DataAccess(IConfiguration configuration)
         {
-            var client = new MongoClient(_connectionString);
+            _configuration = configuration;
+            var client = new MongoClient(_configuration.GetConnectionString("MongoDB"));
             _db = client.GetDatabase(_database);
+
         }
 
         /// <summary>

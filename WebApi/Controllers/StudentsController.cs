@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using System.Collections.Generic;
 using WebApi.DatabaseHelper;
@@ -12,24 +13,26 @@ namespace WebApi.Controllers
     [ApiController]
     public class StudentsController : ControllerBase
     {
-        private readonly DataAccess db;
+        private DataAccess _db;
         const string collection = "Students";
+        private IConfiguration _configuration;
 
-        public StudentsController()
+        public StudentsController(IConfiguration configuration)
         {
-            db = new DataAccess();
+            _configuration = configuration;
+            _db = new DataAccess(_configuration);
         }
 
         [HttpGet]
         public IEnumerable<Student> GetStudents()
         {
-            return db.GetDocuments<Student>(collection);
+            return _db.GetDocuments<Student>(collection);
         }
 
         [HttpGet("{id:length(24)}")]
         public IActionResult GetStudent(string id)
         {
-            var student = db.GetDocumentById<Student>(collection, new ObjectId(id));
+            var student = _db.GetDocumentById<Student>(collection, new ObjectId(id));
             if (student == null) { return NotFound(); }
             return new ObjectResult(student);
         }
@@ -37,25 +40,25 @@ namespace WebApi.Controllers
         [HttpPost]
         public IActionResult InsertStudent([FromBody] Student student)
         {
-            db.InsertDocument(collection, student);
+            _db.InsertDocument(collection, student);
             return new OkResult();
         }
 
         [HttpPut("{id:length(24)}")]
         public IActionResult ReplaceDocument(string id, [FromBody] Student student)
         {
-            var document = db.GetDocumentById<Student>(collection, new ObjectId(id));
+            var document = _db.GetDocumentById<Student>(collection, new ObjectId(id));
             if (document == null) { return new NotFoundResult(); }
-            db.ReplaceDocument(collection, new ObjectId(id), student);
+            _db.ReplaceDocument(collection, new ObjectId(id), student);
             return new OkResult();
         }
 
         [HttpDelete("{id:length(24)}")]
         public IActionResult DeleteDocument(string id)
         {
-            var document = db.GetDocumentById<Student>(collection, new ObjectId(id));
+            var document = _db.GetDocumentById<Student>(collection, new ObjectId(id));
             if (document == null) { return new NotFoundResult(); }
-            db.DeleteDocument<Student>(collection, new ObjectId(id));
+            _db.DeleteDocument<Student>(collection, new ObjectId(id));
             return new OkResult();
         }
     }

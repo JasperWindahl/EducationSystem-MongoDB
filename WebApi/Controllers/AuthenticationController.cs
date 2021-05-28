@@ -21,9 +21,13 @@ namespace WebApi.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IConfiguration _configuration;
+        private DataAccess _db;
+        private string _collection = "Users";
+
         public AuthenticationController(IConfiguration configuration)
         {
             _configuration = configuration;
+            _db = new DataAccess(_configuration);
         }
 
         /// <summary>
@@ -51,6 +55,11 @@ namespace WebApi.Controllers
             return response;
         }
 
+        /// <summary>
+        /// Creates a new user in Database
+        /// </summary>
+        /// <param name="registerUser"></param>
+        /// <returns></returns>
         [Route("register")]
         [AllowAnonymous]
         [HttpPost]
@@ -71,9 +80,7 @@ namespace WebApi.Controllers
                     FullName = registerUser.FullName,
                     Roles = "auth.mongo"
                 };
-                var db = new DataAccess();
-                var collection = "Users";
-                db.InsertDocument<User>(collection, user);
+                _db.InsertDocument<User>(_collection, user);
                 response = Ok();
             }
             return response;
@@ -123,17 +130,13 @@ namespace WebApi.Controllers
 
         private List<User> GetUserList()
         {
-            var db = new DataAccess();
-            var collection = "Users";
-            return db.GetDocuments<User>(collection).ToList();
+            return _db.GetDocuments<User>(_collection).ToList();
         }
 
         private bool CheckUserExists(string userName)
         {
-            var db = new DataAccess();
-            var collection = "Users";
             var filter = MongoDB.Driver.Builders<User>.Filter.Eq("Username", userName);
-            var result = db.GetDocumentsByFilter<User>(collection, filter).Count();
+            var result = _db.GetDocumentsByFilter<User>(_collection, filter).Count();
             return result > 0;
         }
     }
