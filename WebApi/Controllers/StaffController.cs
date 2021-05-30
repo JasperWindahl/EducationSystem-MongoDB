@@ -13,26 +13,24 @@ namespace WebApi.Controllers
     [ApiController]
     public class StaffController : ControllerBase
     {
-        private readonly DatabaseHelper db;
-        const string _collection = "Staff";
-        private IConfiguration _configuration;
+        private readonly DatabaseHelper _db;
+        private readonly string _collection = "Staff";
 
         public StaffController(IConfiguration configuration)
         {
-            _configuration = configuration;
-            db = new DatabaseHelper(_configuration);
+            _db = new DatabaseHelper(configuration);
         }
 
         [HttpGet]
         public IEnumerable<StaffMember> GetAll()
         {
-            return db.GetDocuments<StaffMember>(_collection);
+            return _db.GetDocuments<StaffMember>(_collection);
         }
 
         [HttpGet("{id:length(24)}")]
         public IActionResult GetDocumentById(string id)
         {
-            var result = db.GetDocumentById<StaffMember>(_collection, new ObjectId(id));
+            var result = _db.GetDocumentById<StaffMember>(_collection, new ObjectId(id));
             if (result == null) { return NotFound(); }
             return new ObjectResult(result);
         }
@@ -40,25 +38,25 @@ namespace WebApi.Controllers
         [HttpPost]
         public IActionResult InsertDocument([FromBody] StaffMember document)
         {
-            db.InsertDocument(_collection, document);
+            _db.InsertDocument(_collection, document);
             return new OkResult();
         }
 
         [HttpPut("{id:length(24)}")]
         public IActionResult ReplaceDocument(string id, [FromBody] StaffMember document)
         {
-            var result = db.GetDocumentById<StaffMember>(_collection, new ObjectId(id));
+            var result = _db.GetDocumentById<StaffMember>(_collection, new ObjectId(id));
             if (result == null) { return new NotFoundResult(); }
-            db.ReplaceDocument(_collection, new ObjectId(id), document);
+            _db.ReplaceDocument(_collection, new ObjectId(id), document);
             return new OkResult();
         }
 
         [HttpDelete("{id:length(24)}")]
         public IActionResult DeleteDocument(string id)
         {
-            var result = db.GetDocumentById<StaffMember>(_collection, new ObjectId(id));
+            var result = _db.GetDocumentById<StaffMember>(_collection, new ObjectId(id));
             if (result == null) { return new NotFoundResult(); }
-            db.DeleteDocument<StaffMember>(_collection, new ObjectId(id));
+            _db.DeleteDocument<StaffMember>(_collection, new ObjectId(id));
             return new OkResult();
         }
     }

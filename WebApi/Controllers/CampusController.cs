@@ -13,14 +13,12 @@ namespace WebApi.Controllers
     [ApiController]
     public class CampusController : ControllerBase
     {
-        private IConfiguration _configuration;
-        private DatabaseHelper _db;
-        private string _collection = "Campus";
+        private readonly DatabaseHelper _db;
+        private readonly string _collection = "Campus";
 
         public CampusController(IConfiguration configuration)
         {
-            _configuration = configuration;
-            _db = new DatabaseHelper(_configuration);
+            _db = new DatabaseHelper(configuration);
         }
 
         [HttpGet]
