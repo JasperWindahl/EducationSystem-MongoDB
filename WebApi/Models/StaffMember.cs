@@ -7,7 +7,9 @@ namespace WebApi.Models
     public class StaffMember
     {
         [BsonId]
-        public ObjectId Id { get; set; }
+        [BsonIgnoreIfDefault]
+        [BsonRepresentation(BsonType.ObjectId)]
+        public string Id { get; set; }
         public string FirstName { get; set; }
         public string MiddleName { get; set; }
         public string LastName { get; set; }
