@@ -1,27 +1,24 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using MongoDB.Driver;
-using System.Collections.Generic;
-using System.Linq;
 
-namespace WebApi.DatabaseHelper
+namespace WebApi.Helpers
 {
-    public class DataAccess
+    public class DatabaseHelper
     {
-        private IMongoDatabase _db;
-        //private string _connectionString = "mongodb+srv://sd21w1-db4devs:PoXiALeRiaCY@cluster0.ymmgr.mongodb.net/test?authSource=admin&replicaSet=atlas-9fbz1s-shard-0&readPreference=primary&appname=MongoDB%20Compass&ssl=true";
-        private string _database = "EducationSystem";
-        private IConfiguration _configuration;
+        private readonly IMongoDatabase _db;
 
         /// <summary>
-        /// Instanciates the DataAccess and sets up the client and collection
+        /// Instanciates the DatabaseHelper and sets up the client and collection
         /// </summary>
-        public DataAccess(IConfiguration configuration)
+        public DatabaseHelper(IConfiguration configuration)
         {
-            _configuration = configuration;
-            var client = new MongoClient(_configuration.GetConnectionString("MongoDB"));
-            _db = client.GetDatabase(_database);
+            var connectionString = configuration.GetConnectionString("MongoDB");
+            var database = configuration["MongoDatabase"];
 
+            var client = new MongoClient(connectionString);
+            _db = client.GetDatabase(database);
         }
 
         /// <summary>

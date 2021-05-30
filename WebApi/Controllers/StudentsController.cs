@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Bson;
 using System.Collections.Generic;
-using WebApi.DatabaseHelper;
+using WebApi.Helpers;
 using WebApi.Models;
 
 namespace WebApi.Controllers
@@ -13,14 +13,14 @@ namespace WebApi.Controllers
     [ApiController]
     public class StudentsController : ControllerBase
     {
-        private DataAccess _db;
+        private DatabaseHelper _db;
         const string collection = "Students";
         private IConfiguration _configuration;
 
         public StudentsController(IConfiguration configuration)
         {
             _configuration = configuration;
-            _db = new DataAccess(_configuration);
+            _db = new DatabaseHelper(_configuration);
         }
 
         [HttpGet]

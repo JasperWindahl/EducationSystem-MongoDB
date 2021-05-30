@@ -9,7 +9,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using WebApi.Authentication;
-using WebApi.DatabaseHelper;
+using WebApi.Helpers;
 using WebApi.Models;
 using static WebApi.Authentication.Hashing;
 
@@ -21,13 +21,13 @@ namespace WebApi.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private DataAccess _db;
+        private DatabaseHelper _db;
         private string _collection = "Users";
 
         public AuthenticationController(IConfiguration configuration)
         {
             _configuration = configuration;
-            _db = new DataAccess(_configuration);
+            _db = new DatabaseHelper(_configuration);
         }
 
         /// <summary>
