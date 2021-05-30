@@ -12,6 +12,7 @@ using WebApi.Authentication;
 using WebApi.Helpers;
 using WebApi.Models;
 using static WebApi.Authentication.Hashing;
+// ReSharper disable RedundantExplicitArrayCreation
 
 namespace WebApi.Controllers
 {
@@ -21,8 +22,8 @@ namespace WebApi.Controllers
     public class AuthenticationController : ControllerBase
     {
         private readonly IConfiguration _configuration;
-        private DatabaseHelper _db;
-        private string _collection = "Users";
+        private readonly DatabaseHelper _db;
+        private readonly string _collection = "Users";
 
         public AuthenticationController(IConfiguration configuration)
         {
@@ -66,23 +67,21 @@ namespace WebApi.Controllers
         public IActionResult CreateUser([FromBody] User registerUser)
         {
             IActionResult response = BadRequest();
-            if (registerUser.Username != null && registerUser.Password != null)
-            {
-                if (CheckUserExists(registerUser.Username)) { return response; }
+            if (registerUser.Username == null || registerUser.Password == null) return response;
+            if (CheckUserExists(registerUser.Username)) { return response; }
 
-                var salt = GenerateSalt();
-                var user = new User
-                {
-                    Username = registerUser.Username,
-                    Password = GenerateHash(registerUser.Password, salt),
-                    Salt = salt,
-                    Email = registerUser.Email,
-                    FullName = registerUser.FullName,
-                    Roles = "auth.mongo"
-                };
-                _db.InsertDocument<User>(_collection, user);
-                response = Ok();
-            }
+            var salt = GenerateSalt();
+            var user = new User
+            {
+                Username = registerUser.Username,
+                Password = GenerateHash(registerUser.Password, salt),
+                Salt = salt,
+                Email = registerUser.Email,
+                FullName = registerUser.FullName,
+                Roles = "auth.mongo"
+            };
+            _db.InsertDocument(_collection, user);
+            response = Ok();
             return response;
         }
 
@@ -109,34 +108,48 @@ namespace WebApi.Controllers
             return details;
         }
 
+        /// <summary>
+        /// Authenticates user credentials
+        /// </summary>
+        /// <param name="tokenRequest"></param>
+        /// <returns></returns>
         public TokenDetails AuthenticateUser(TokenRequest tokenRequest)
         {
             var tokenDetails = new TokenDetails();
-            var users = GetUserList();
+            var users = GetUserByUsername(tokenRequest.Username);
 
             foreach (var user in users)
             {
                 var hashedPassword = GenerateHash(tokenRequest.Password, user.Salt);
-                if (user.Username == tokenRequest.Username && hashedPassword == user.Password)
-                {
-                    tokenDetails.Email = user.Email;
-                    tokenDetails.Name = user.FullName;
-                    tokenDetails.Roles = user.Roles;
-                    break;
-                }
+                if (user.Username != tokenRequest.Username || hashedPassword != user.Password) continue;
+                tokenDetails.Email = user.Email;
+                tokenDetails.Name = user.FullName;
+                tokenDetails.Roles = user.Roles;
+                break;
             }
             return tokenDetails;
         }
 
-        private List<User> GetUserList()
+        /// <summary>
+        /// Gets a given User from the database
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
+        private IEnumerable<User> GetUserByUsername(string userName)
         {
-            return _db.GetDocuments<User>(_collection).ToList();
+            var filter = MongoDB.Driver.Builders<User>.Filter.Eq("Username", userName);
+            return _db.GetDocumentsByFilter(_collection, filter);
         }
 
+        /// <summary>
+        /// Check if a User with a given username exists in the database
+        /// </summary>
+        /// <param name="userName"></param>
+        /// <returns></returns>
         private bool CheckUserExists(string userName)
         {
             var filter = MongoDB.Driver.Builders<User>.Filter.Eq("Username", userName);
-            var result = _db.GetDocumentsByFilter<User>(_collection, filter).Count();
+            var result = _db.GetDocumentsByFilter(_collection, filter).Count();
             return result > 0;
         }
     }
